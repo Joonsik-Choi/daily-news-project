@@ -5,6 +5,7 @@ import com.daily.dailynews.dto.NewsResponse
 import com.daily.dailynews.repository.NewsRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -13,6 +14,20 @@ class NewsService(
 ) {
     fun findAll(): List<NewsResponse> =
         newsRepository.findAll().map { NewsResponse.from(it) }
+
+    fun search(category: String?, startAt: LocalDateTime?, endAt: LocalDateTime?): List<NewsResponse> {
+        val newsList = when {
+            category != null && startAt != null && endAt != null ->
+                newsRepository.findByCategoryAndPubAtBetween(category, startAt, endAt)
+            category != null ->
+                newsRepository.findByCategory(category)
+            startAt != null && endAt != null ->
+                newsRepository.findByPubAtBetween(startAt, endAt)
+            else ->
+                newsRepository.findAll()
+        }
+        return newsList.map { NewsResponse.from(it) }
+    }
 
     fun findById(id: Long): NewsResponse =
         newsRepository.findById(id)
@@ -29,13 +44,7 @@ class NewsService(
     fun update(id: Long, request: NewsRequest): NewsResponse {
         val news = newsRepository.findById(id)
             .orElseThrow { NoSuchElementException("News not found: $id") }
-        news.title = request.title
-        news.content = request.content
-        news.link = request.link
-        news.shortSummary = request.shortSummary
-        news.longSummary = request.longSummary
-        news.category = request.category
-        news.pubAt = request.pubAt
+        news.update(request)
         return NewsResponse.from(news)
     }
 

@@ -1,5 +1,6 @@
 package com.daily.dailynews.entity
 
+import com.daily.dailynews.dto.NewsRequest
 import jakarta.persistence.*
 import java.time.Instant
 import java.time.LocalDateTime
@@ -28,4 +29,14 @@ class News(
 
     @Column(name = "created_at", updatable = false)
     var createdAt: Instant = Instant.now(),
-)
+) {
+    fun update(request: NewsRequest) {
+        this.title = request.title
+        this.content = request.content
+        this.link = request.link
+        this.shortSummary = request.shortSummary
+        this.longSummary = request.longSummary
+        this.category = request.category
+        this.pubAt = request.pubAt
+    }
+}
